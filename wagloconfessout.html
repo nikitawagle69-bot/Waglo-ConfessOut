@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waglo ConfessOut - Send Anonymous Messages</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .brand-name {
+            font-size: 2.8em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .brand-tagline {
+            color: #666;
+            font-size: 1.1em;
+            font-style: italic;
+        }
+
+        .confession-form {
+            background: #fffaf0;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px dashed #ffa502;
+        }
+
+        .confession-form textarea {
+            width: 100%;
+            height: 150px;
+            padding: 20px;
+            border: 2px solid #ffa502;
+            border-radius: 12px;
+            resize: vertical;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        .confession-form textarea:focus {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+            outline: none;
+        }
+
+        .confession-form input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ffa502;
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        .confession-form input:focus {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+            outline: none;
+        }
+
+        .confession-form button {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .confession-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .disclaimer {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #ffd43b;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #856404;
+            text-align: center;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #28a745;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #155724;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .secret-code-link {
+            text-align: center;
+            margin: 30px 0 20px 0;
+            padding: 15px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .secret-code-link:hover {
+            color: rgba(255, 255, 255, 1);
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .secret-code-link .code {
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 8px;
+            border-radius: 5px;
+            margin: 0 5px;
+            font-weight: bold;
+            color: #ffd43b;
+        }
+
+        .admin-panel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            z-index: 1001;
+            width: 95%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .admin-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .close-admin {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .close-admin:hover {
+            background: #c82333;
+            transform: scale(1.1);
+        }
+
+        .sender-info {
+            font-size: 12px;
+            color: #28a745;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .admin-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .admin-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 60px 20px;
+            font-size: 18px;
+        }
+
+        .confession-text {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            color: #333;
+            font-style: italic;
+        }
+
+        .confession-meta {
+            font-size: 14px;
+            color: #6c757d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .clear-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .stats {
+            font-size: 14px;
+            color: #6c757d;
+            background: #f8f9fa;
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            margin-top: 20px;
+            padding: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin-top: 10px;
+            }
+            
+            .brand-name {
+                font-size: 2.2em;
+            }
+            
+            .confession-form {
+                padding: 20px;
+            }
+            
+            .admin-panel {
+                padding: 20px;
+                width: 98%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Panel Overlay -->
+    <div class="admin-overlay" id="adminOverlay" onclick="toggleAdminPanel()"></div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <button class="close-admin" onclick="toggleAdminPanel()">×</button>
+        
+        <div class="admin-header">
+            <h2 style="color: #ee5a24; margin: 0;">🔒 Waglo ConfessOut - Admin Panel</h2>
+            <div class="stats">Total: <span id="confessionCount">0</span> confessions</div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 25px;">
+            <button class="clear-btn" onclick="clearAllConfessions()">🗑️ Clear All Confessions</button>
+        </div>
+
+        <div id="adminConfessionsContainer">
+            <!-- Confessions will appear here -->
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="brand-header">
+            <div class="brand-name">Waglo ConfessOut</div>
+            <div class="brand-tagline">Your secret confession platform</div>
+        </div>
+        
+        <div class="confession-form">
+            <textarea 
+                id="confessionText" 
+                placeholder="Write your secret confession here... 💭
+
+Examples:
+• 'I've always admired your confidence...'
+• 'I wish I could tell you how I really feel...'
+• 'You make my day better without even knowing...'"
+            ></textarea>
+            
+            <input 
+                type="email" 
+                id="recipientEmail" 
+                placeholder="Recipient's email address *" 
+                required
+            >
+            
+            <div id="emailError" class="error"></div>
+            
+            <button onclick="sendConfession()">
+                🔒 Send Anonymously
+            </button>
+        </div>
+
+        <div class="disclaimer">
+            <strong>🛡️ 100% Anonymous & Secure:</strong> 
+            Your identity is completely protected. The recipient will never know who sent this message. 
+            Only you can access received confessions with the secret admin code.
+        </div>
+
+        <div id="successMessage" class="success-message">
+            ✅ Confession sent successfully! Your secret is safe with Waglo ConfessOut.
+        </div>
+    </div>
+
+    <!-- Secret Access Link -->
+    <div class="secret-code-link" onclick="toggleAdminPanel()">
+        🔐 Waglo System • Privacy Protected • Admin Code: <span class="code">WAGLO-2024</span> • Secure Connection
+    </div>
+
+    <div class="footer">
+        &copy; 2024 Waglo ConfessOut • Powered by Anonymous Technology
+    </div>
+
+    <script>
+        // Admin password - Change this to your preferred code
+        let adminPassword = "waglo123";
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAdminConfessions();
+        });
+
+        // Email validation
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        // Send confession function
+        function sendConfession() {
+            const text = document.getElementById('confessionText').value;
+            const email = document.getElementById('recipientEmail').value;
+            const errorElement = document.getElementById('emailError');
+            const successMessage = document.getElementById('successMessage');
+            
+            // Clear previous errors and hide success
+            errorElement.textContent = '';
+            successMessage.style.display = 'none';
+            
+            // Validation
+            if (!text.trim()) {
+                alert('Please write your confession before sending! ✍️');
+                return;
+            }
+            
+            if (!email.trim()) {
+                errorElement.textContent = 'Recipient email is required!';
+                return;
+            }
+            
+            if (!validateEmail(email)) {
+                errorElement.textContent = 'Please enter a valid email address!';
+                return;
+            }
+            
+            // Create confession object
+            const confession = {
+                text: text,
+                recipient: email,
+                sender: 'Anonymous',
+                timestamp: new Date().toLocaleString(),
+                id: Date.now(),
+                userInfo: 'User-' + Math.floor(1000 + Math.random() * 9000)
+            };
+            
+            // Save to browser storage
+            saveConfession(confession);
+            
+            // Clear form and show success
+            document.getElementById('confessionText').value = '';
+            document.getElementById('recipientEmail').value = '';
+            successMessage.style.display = 'block';
+            
+            // Hide success message after 4 seconds
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 4000);
+        }
+
+        // Save confession to localStorage
+        function saveConfession(confession) {
+            const confessions = JSON.parse(localStorage.getItem('confessions') || '[]');
+            confessions.unshift(confession); // Add to beginning (newest first)
+            localStorage.setItem('confessions', JSON.stringify(confessions));
+            loadAdminConfessions(); // Update admin view
+        }
+
+        // Load confessions for admin view
+        function loadAdminConfessions() {
+            const adminContainer = document.getElementById('adminConfessionsContainer');
+            const confessionCount = document.getElementById('confessionCount');
+            const confessions = JSON.parse(localStorage.getItem('confessions') || '[]');
+            
+            // Update confession count
+            confessionCount.textContent = confessions.length;
+            
+            // Display confessions in admin panel
+            if (confessions.length === 0) {
+                adminContainer.innerHTML = `
+                    <div class="empty-state">
+                        📭 No confessions yet<br>
+                        <small style="color: #999; margin-top: 10px; display: block;">
+                            Share your Waglo ConfessOut link and wait for secret messages!
+                        </small>
+                    </div>
+                `;
+            } else {
+                adminContainer.innerHTML = confessions.map(confession => `
+                    <div class="admin-card">
+                        <div class="confession-text">"${confession.text}"</div>
+                        <div class="confession-meta">
+                            <span>📧 To: ${confession.recipient}</span>
+                            <span>🕒 ${confession.timestamp}</span>
+                        </div>
+                        <div class="sender-info">
+                            <strong>🆔 Sender ID:</strong> ${confession.userInfo} | 
+                            <strong>#${confession.id}</strong>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Toggle admin panel
+        function toggleAdminPanel() {
+            const panel = document.getElementById('adminPanel');
+            const overlay = document.getElementById('adminOverlay');
+            
+            if (panel.style.display === 'block') {
+                // Close panel
+                panel.style.display = 'none';
+                overlay.style.display = 'none';
+            } else {
+                // Open panel with password
+                const password = prompt('🔐 Enter Waglo Admin Code:');
+                if (password === adminPassword) {
+                    panel.style.display = 'block';
+                    overlay.style.display = 'block';
+                    loadAdminConfessions();
+                } else if (password !== null) {
+                    alert('❌ Access Denied! Invalid Waglo code.');
+                }
+            }
+        }
+
+        // Clear all confessions
+        function clearAllConfessions() {
+            if (confirm('⚠️ Are you sure you want to delete ALL confessions?\n\nThis action cannot be undone!')) {
+                localStorage.removeItem('confessions');
+                loadAdminConfessions();
+                alert('✅ All confessions have been cleared from Waglo system!');
+            }
+        }
+
+        // Handle Enter key in form
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                sendConfession();
+            }
+        });
+    </script>
+</body>
+</html>
